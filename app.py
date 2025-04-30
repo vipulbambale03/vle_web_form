@@ -19,7 +19,16 @@ def index():
 @app.route('/')
 def index():
     return render_template('index.html')
-
+    
+@app.route('/debug_check')
+def debug_check():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM divisions")
+    count = cur.fetchone()[0]
+    cur.close()
+    conn.close()
+    return f"Division count: {count}"
 
 @app.route('/get_divisions', methods=['GET'])
 def get_divisions():
