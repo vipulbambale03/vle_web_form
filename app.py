@@ -6,8 +6,6 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-app = Flask(__name__)
-
 # Database connection
 def get_db_connection():
     return psycopg2.connect(os.getenv('postgresql://vipulbambale03:jLN4WPo1dLc54HCnReR8BI7uPf1uiDce@dpg-d08r3hp5pdvs739q23i0-a.singapore-postgres.render.com/mh_web_app_funj'))
