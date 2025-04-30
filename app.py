@@ -8,7 +8,13 @@ load_dotenv()
 
 # Database connection
 def get_db_connection():
-    return psycopg2.connect(os.getenv('postgresql://vipulbambale03:jLN4WPo1dLc54HCnReR8BI7uPf1uiDce@dpg-d08r3hp5pdvs739q23i0-a.singapore-postgres.render.com/mh_web_app_funj'))
+    return psycopg2.connect(
+        host='dpg-d08r3hp5pdvs739q23i0-a.singapore-postgres.render.com',
+        database='mh_web_app_funj',
+        user='vipulbambale03',
+        password='jLN4WPo1dLc54HCnReR8BI7uPf1uiDce',
+        port='5432'
+    )
 
 app = Flask(__name__)
 
