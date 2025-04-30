@@ -22,13 +22,16 @@ def index():
     
 @app.route('/debug_check')
 def debug_check():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) FROM divisions")
-    count = cur.fetchone()[0]
-    cur.close()
-    conn.close()
-    return f"Division count: {count}"
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM divisions")
+        count = cur.fetchone()[0]
+        cur.close()
+        conn.close()
+        return f"Division count: {count}"
+    except Exception as e:
+        return f"Error: {str(e)}", 500
 
 @app.route('/get_divisions', methods=['GET'])
 def get_divisions():
