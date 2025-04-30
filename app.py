@@ -18,7 +18,7 @@ def index():
 '''
 @app.route('/')
 def index():
-    return "Hello, the app is working!"
+    return render_template('index.html')
 
 
 @app.route('/get_divisions', methods=['GET'])
