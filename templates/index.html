@@ -543,7 +543,7 @@
                 if (divisionId) {
                     $.getJSON('/get_districts/' + divisionId, function(districts) {
                         districts.forEach(function(district) {
-                            $('#district').append(new Option(district[1], district[0]));
+                            $('#district').append(new Option(district.name, district.id)); // Corrected here
                         });
                     }).fail(function() {
                         console.error("Error loading districts for division:", divisionId);
@@ -561,7 +561,7 @@
                 if (districtId) {
                     $.getJSON('/get_blocks/' + districtId, function(blocks) {
                         blocks.forEach(function(block) {
-                            $('#block').append(new Option(block[1], block[0]));
+                            $('#block').append(new Option(block.name, block.id)); // Corrected here
                         });
                     }).fail(function() {
                         console.error("Error loading blocks for district:", districtId);
@@ -578,7 +578,7 @@
                 if (blockId) {
                     $.getJSON('/get_grampanchayats/' + blockId, function(grampanchayats) {
                         grampanchayats.forEach(function(grampanchayat) {
-                            $('#grampanchayat').append(new Option(grampanchayat[1], grampanchayat[0]));
+                            $('#grampanchayat').append(new Option(grampanchayat.name, grampanchayat.lgd_code)); // Corrected here
                         });
                     }).fail(function() {
                         console.error("Error loading grampanchayats for block:", blockId);
