@@ -491,7 +491,7 @@
                 $.getJSON('/get_divisions', function(divisions) {
                     $('#division').empty().append('<option value="">Select Division</option>');
                     divisions.forEach(function(division) {
-                        $('#division').append(new Option(division[1], division[0]));
+                        $('#division').append(new Option(division.name, division.id));
                     });
                 }).fail(function() {
                     console.error("Error loading divisions");
