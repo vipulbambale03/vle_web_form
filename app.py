@@ -12,9 +12,14 @@ def get_db_connection():
 
 app = Flask(__name__)
 
-@app.route('/')
+'''@app.route('/')
 def index():
     return render_template('index.html')
+'''
+@app.route('/')
+def index():
+    return "Hello, the app is working!"
+
 
 @app.route('/get_divisions', methods=['GET'])
 def get_divisions():
