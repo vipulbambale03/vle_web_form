@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: vle-web-form
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn app:app
+    envVars:
+      - key: DATABASE_URL
+        value: YOUR_DATABASE_URL
