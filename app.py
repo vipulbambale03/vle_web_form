@@ -26,7 +26,7 @@ def get_divisions():
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute("SELECT id, name FROM divisions")
-    divisions = cursor.fetchall()
+    divisions = [{'id': row[0], 'name': row[1]} for row in cursor.fetchall()]
     cursor.close()
     connection.close()
     return jsonify(divisions)
@@ -36,7 +36,7 @@ def get_districts(division_id):
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute("SELECT id, name FROM districts WHERE division_id = %s", (division_id,))
-    districts = cursor.fetchall()
+    districts = [{'id': row[0], 'name': row[1]} for row in cursor.fetchall()]
     cursor.close()
     connection.close()
     return jsonify(districts)
@@ -46,7 +46,7 @@ def get_blocks(district_id):
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute("SELECT id, name FROM blocks WHERE district_id = %s", (district_id,))
-    blocks = cursor.fetchall()
+    blocks = [{'id': row[0], 'name': row[1]} for row in cursor.fetchall()]
     cursor.close()
     connection.close()
     return jsonify(blocks)
@@ -56,7 +56,7 @@ def get_grampanchayats(block_id):
     connection = get_db_connection()
     cursor = connection.cursor()
     cursor.execute("SELECT lgd_code, name FROM grampanchayats WHERE block_id = %s", (block_id,))
-    grampanchayats = cursor.fetchall()
+    grampanchayats = [{'lgd_code': row[0], 'name': row[1]} for row in cursor.fetchall()]
     cursor.close()
     connection.close()
     return jsonify(grampanchayats)
