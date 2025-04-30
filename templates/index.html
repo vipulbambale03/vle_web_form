@@ -844,21 +844,21 @@
                 setTimeout(function() {
                     $.getJSON('/get_districts/' + divisionId, function(districts) {
                         $('#district').empty().append('<option value="">Select District</option>');
-                        districts.forEach(d => $('#district').append(new Option(d[1], d[0])));
+                        districts.forEach(d => $('#district').append(new Option(d.name, d.id)));
                         $('#district').val(districtId).trigger('change');
                         
                         // After district loads, load block
                         setTimeout(function() {
                             $.getJSON('/get_blocks/' + districtId, function(blocks) {
                                 $('#block').empty().append('<option value="">Select Block</option>');
-                                blocks.forEach(b => $('#block').append(new Option(b[1], b[0])));
+                                blocks.forEach(b => $('#block').append(new Option(b.name, b.id)));
                                 $('#block').val(blockId).trigger('change');
                                 
                                 // After block loads, load grampanchayat
                                 setTimeout(function() {
                                     $.getJSON('/get_grampanchayats/' + blockId, function(gps) {
                                         $('#grampanchayat').empty().append('<option value="">Select Grampanchayat</option>');
-                                        gps.forEach(gp => $('#grampanchayat').append(new Option(gp[1], gp[0])));
+                                        gps.forEach(gp => $('#grampanchayat').append(new Option(gp.name, gp.id)));
 
                                         // ✅ Delay assigning values to ensure 'multiple' has taken effect
                                         setTimeout(function() {
