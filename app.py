@@ -10,6 +10,8 @@ load_dotenv()
 def get_db_connection():
     return psycopg2.connect(os.getenv('postgresql://vipulbambale03:jLN4WPo1dLc54HCnReR8BI7uPf1uiDce@dpg-d08r3hp5pdvs739q23i0-a.singapore-postgres.render.com/mh_web_app_funj'))
 
+app = Flask(__name__)
+
 @app.route('/')
 def index():
     return render_template('index.html')
