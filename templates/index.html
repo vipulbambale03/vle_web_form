@@ -485,7 +485,6 @@
 
     </style>
     <script>
-        
         $(document).ready(function() {
             // Initialize dropdowns
             function initializeDropdowns() {
@@ -499,22 +498,6 @@
                 });
             }
             initializeDropdowns();
-
-            window.debugForm = function() {
-                return {
-                    employeeType: $('#employeeType').val(),
-                    selectedGPs: $('#grampanchayat').val(),
-                    allGPs: $('#grampanchayat').find('option').map((i,o) => o.value).get(),
-                    isMultiple: $('#grampanchayat').prop('multiple'),
-                    locationIds: {
-                        division: $('#division').val(),
-                        district: $('#district').val(),
-                        block: $('#block').val()
-                    }
-                };
-            };
-            
-            console.log('Form debug helper available: debugForm()');
 
             // New: Employee type change handler
             $('#employeeType').change(function() {
@@ -852,71 +835,45 @@
 
             // Modified to handle multiple grampanchayats
             function loadLocationHierarchy(divisionId, districtId, blockId, grampanchayatIds) {
-                console.log('Loading hierarchy for:', {divisionId, districtId, blockId, grampanchayatIds});
+                console.log("Loading location hierarchy:", {divisionId, districtId, blockId, grampanchayatIds});
                 
-                // Reset first
-                $('#district, #block, #grampanchayat').empty().append('<option value="">Select...</option>');
-                $('#lgdCodeDisplay').empty();
-            
                 // Load division
                 $('#division').val(divisionId).trigger('change');
                 
-                // After division loads
-                setTimeout(() => {
-                    if (!districtId) return;
-                    
-                    $.getJSON('/get_districts/' + divisionId)
-                        .done(function(districts) {
-                            $('#district').empty().append('<option value="">Select District</option>');
-                            districts.forEach(d => $('#district').append(new Option(d.name, d.id)));
-                            $('#district').val(districtId).trigger('change');
-                        })
-                        .fail(handleDropdownError('districts'));
-            
-                    // After district loads
-                    setTimeout(() => {
-                        if (!blockId) return;
+                // After division loads, load district
+                setTimeout(function() {
+                    $.getJSON('/get_districts/' + divisionId, function(districts) {
+                        $('#district').empty().append('<option value="">Select District</option>');
+                        districts.forEach(d => $('#district').append(new Option(d.name, d.id)));
+                        $('#district').val(districtId).trigger('change');
                         
-                        $.getJSON('/get_blocks/' + districtId)
-                            .done(function(blocks) {
+                        // After district loads, load block
+                        setTimeout(function() {
+                            $.getJSON('/get_blocks/' + districtId, function(blocks) {
                                 $('#block').empty().append('<option value="">Select Block</option>');
                                 blocks.forEach(b => $('#block').append(new Option(b.name, b.id)));
                                 $('#block').val(blockId).trigger('change');
-                            })
-                            .fail(handleDropdownError('blocks'));
-            
-                        // After block loads
-                        setTimeout(() => {
-                            if (!grampanchayatIds || !grampanchayatIds.length) return;
-                            
-                            $.getJSON('/get_grampanchayats/' + blockId)
-                                .done(function(gps) {
-                                    $('#grampanchayat').empty().append('<option value="">Select Grampanchayat</option>');
-                                    gps.forEach(gp => {
-                                        $('#grampanchayat').append(new Option(gp.name, gp.lgd_code));
+                                
+                                // After block loads, load grampanchayat
+                                setTimeout(function() {
+                                    $.getJSON('/get_grampanchayats/' + blockId, function(gps) {
+                                        $('#grampanchayat').empty().append('<option value="">Select Grampanchayat</option>');
+                                        gps.forEach(gp => $('#grampanchayat').append(new Option(gp.name, gp.id)));
+
+                                        // ✅ Delay assigning values to ensure 'multiple' has taken effect
+                                        setTimeout(function() {
+                                            if (grampanchayatIds && grampanchayatIds.length > 0) {
+                                                $('#grampanchayat').val(grampanchayatIds);
+                                                $('#lgdCodeDisplay').text(grampanchayatIds.join(', '));
+                                            }
+                                        }, 200);
+
                                     });
-                                    
-                                    // Ensure multiple select is properly set
-                                    const isCluster = $('#employeeType').val() === 'cluster';
-                                    $('#grampanchayat').prop('multiple', isCluster);
-                                    
-                                    // Small delay to ensure DOM updates
-                                    setTimeout(() => {
-                                        $('#grampanchayat').val(grampanchayatIds);
-                                        $('#lgdCodeDisplay').text(grampanchayatIds.join(', '));
-                                    }, 100);
-                                })
-                                .fail(handleDropdownError('grampanchayats'));
+                                }, 300);
+                            });
                         }, 300);
-                    }, 300);
+                    });
                 }, 300);
-            }
-            
-            function handleDropdownError(type) {
-                return function(jqXHR, textStatus, errorThrown) {
-                    console.error(`Error loading ${type}:`, textStatus, errorThrown);
-                    showError(`Failed to load ${type}. Please refresh and try again.`);
-                };
             }
 
             // Fallback function for name-based GP lookup
@@ -969,18 +926,6 @@
                 });
             }
 
-
-            function showError(message) {
-                $('#form-message').html(`
-                    <div class="alert alert-danger">
-                        ${message}
-                    </div>
-                `).addClass('alert-danger');
-                
-                $('html, body').animate({
-                    scrollTop: $('#form-message').offset().top - 100
-                }, 500);
-            }
             // Form submission
             $('#employeeForm').submit(function(e) {
                 const cibilScore = $('#cibilScore').val();
@@ -1025,22 +970,6 @@
                     return false;
                 }
 
-                // Get the actual selected values (works for both single and multiple select)
-                const selectedGPs = Array.from($('#grampanchayat')[0].selectedOptions)
-                                     .map(option => option.value);
-                
-                const employeeType = $('#employeeType').val();
-                
-                // Enhanced validation
-                if (employeeType === 'cluster' && selectedGPs.length < 2) {
-                    showError('Please select at least 2 grampanchayats for cluster type');
-                    return;
-                } 
-                else if (employeeType === 'individual' && selectedGPs.length !== 1) {
-                    showError('Please select exactly 1 grampanchayat for individual type');
-                    return;
-                }
-        
                 // Determine if this is an update or new submission
                 const isUpdate = $('#searchBtn').is(':hidden');
                 const url = isUpdate ? '/update_record' : '/submit_form';
