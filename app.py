@@ -92,6 +92,9 @@ def submit_form():
         
         # Get employee type
         vle_type = form_data['employeeType']
+
+        grampanchayats = request.form.getlist('grampanchayats')
+        print(f"GP Type: {gp_type}, Grampanchayats: {grampanchayats}")
         
         # Get selected grampanchayats
         grampanchayat_ids = request.form.getlist('grampanchayat') if vle_type == 'cluster' else [form_data['grampanchayat']]
