@@ -598,6 +598,20 @@
                 }
             });
 
+            $('#gp_type').change(function () {
+                let selectedType = $(this).val();
+                let $gpSelect = $('#grampanchayat');
+            
+                if (selectedType === 'individual') {
+                    $gpSelect.removeAttr('multiple');
+                } else {
+                    $gpSelect.attr('multiple', 'multiple');
+                }
+            });
+            
+            $('#gp_type').trigger('change');
+
+
             // Form field handlers
             $('#maritalStatus').change(function () {
                 var status = $(this).val();
@@ -1060,7 +1074,7 @@
             <div class="form-group">
                 <label for="grampanchayat">Grampanchayat:</label>
                 <div class="form-control-container">
-                    <select id="grampanchayat" name="grampanchayat" required></select>
+                    <select id="grampanchayat" name="grampanchayat" required multiple></select>
                     <div id="lgdCodeDisplay" class="lgd-code-display"></div>
                 </div>
             </div>
