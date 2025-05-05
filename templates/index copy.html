@@ -491,7 +491,7 @@
                 $.getJSON('/get_divisions', function(divisions) {
                     $('#division').empty().append('<option value="">Select Division</option>');
                     divisions.forEach(function(division) {
-                        $('#division').append(new Option(division[1], division[0]));
+                        $('#division').append(new Option(division.name, division.id));
                     });
                 }).fail(function() {
                     console.error("Error loading divisions");
@@ -543,7 +543,7 @@
                 if (divisionId) {
                     $.getJSON('/get_districts/' + divisionId, function(districts) {
                         districts.forEach(function(district) {
-                            $('#district').append(new Option(district[1], district[0]));
+                            $('#district').append(new Option(district.name, district.id)); // Corrected here
                         });
                     }).fail(function() {
                         console.error("Error loading districts for division:", divisionId);
@@ -561,7 +561,7 @@
                 if (districtId) {
                     $.getJSON('/get_blocks/' + districtId, function(blocks) {
                         blocks.forEach(function(block) {
-                            $('#block').append(new Option(block[1], block[0]));
+                            $('#block').append(new Option(block.name, block.id)); // Corrected here
                         });
                     }).fail(function() {
                         console.error("Error loading blocks for district:", districtId);
@@ -578,7 +578,7 @@
                 if (blockId) {
                     $.getJSON('/get_grampanchayats/' + blockId, function(grampanchayats) {
                         grampanchayats.forEach(function(grampanchayat) {
-                            $('#grampanchayat').append(new Option(grampanchayat[1], grampanchayat[0]));
+                            $('#grampanchayat').append(new Option(grampanchayat.name, grampanchayat.lgd_code)); // Corrected here
                         });
                     }).fail(function() {
                         console.error("Error loading grampanchayats for block:", blockId);
@@ -844,21 +844,21 @@
                 setTimeout(function() {
                     $.getJSON('/get_districts/' + divisionId, function(districts) {
                         $('#district').empty().append('<option value="">Select District</option>');
-                        districts.forEach(d => $('#district').append(new Option(d[1], d[0])));
+                        districts.forEach(d => $('#district').append(new Option(d.name, d.id)));
                         $('#district').val(districtId).trigger('change');
                         
                         // After district loads, load block
                         setTimeout(function() {
                             $.getJSON('/get_blocks/' + districtId, function(blocks) {
                                 $('#block').empty().append('<option value="">Select Block</option>');
-                                blocks.forEach(b => $('#block').append(new Option(b[1], b[0])));
+                                blocks.forEach(b => $('#block').append(new Option(b.name, b.id)));
                                 $('#block').val(blockId).trigger('change');
                                 
                                 // After block loads, load grampanchayat
                                 setTimeout(function() {
                                     $.getJSON('/get_grampanchayats/' + blockId, function(gps) {
                                         $('#grampanchayat').empty().append('<option value="">Select Grampanchayat</option>');
-                                        gps.forEach(gp => $('#grampanchayat').append(new Option(gp[1], gp[0])));
+                                        gps.forEach(gp => $('#grampanchayat').append(new Option(gp.name, gp.id)));
 
                                         // ✅ Delay assigning values to ensure 'multiple' has taken effect
                                         setTimeout(function() {
@@ -881,37 +881,37 @@
                 console.log("Using name-based fallback lookup");
                 
                 $.getJSON('/get_divisions', function(divisions) {
-                    const division = divisions.find(d => d[1] === divisionName);
+                    const division = divisions.find(d => d.name === divisionName);
                     if (division) {
-                        $('#division').val(division[0]).trigger('change');
+                        $('#division').val(division.id).trigger('change');
                         
                         setTimeout(function() {
-                            $.getJSON('/get_districts/' + division[0], function(districts) {
-                                const district = districts.find(d => d[1] === districtName);
+                            $.getJSON('/get_districts/' + division.id, function(districts) {
+                                const district = districts.find(d => d.name === districtName);
                                 if (district) {
-                                    $('#district').val(district[0]).trigger('change');
+                                    $('#district').val(district.id).trigger('change');
                                     
                                     setTimeout(function() {
-                                        $.getJSON('/get_blocks/' + district[0], function(blocks) {
-                                            const block = blocks.find(b => b[1] === blockName);
+                                        $.getJSON('/get_blocks/' + district.id, function(blocks) {
+                                            const block = blocks.find(b => b.name === blockName);
                                             if (block) {
-                                                $('#block').val(block[0]).trigger('change');
+                                                $('#block').val(block.id).trigger('change');
                                                 
                                                 setTimeout(function() {
-                                                    $.getJSON('/get_grampanchayats/' + block[0], function(gps) {
+                                                    $.getJSON('/get_grampanchayats/' + block.id, function(gps) {
                                                         $('#grampanchayat').empty().append('<option value="">Select Grampanchayat</option>');
-                                                        gps.forEach(gp => $('#grampanchayat').append(new Option(gp[1], gp[0])));
+                                                        gps.forEach(gp => $('#grampanchayat').append(new Option(gp.name, gp.id)));
                                                         
                                                         // Find matching grampanchayat
                                                         const gp = gps.find(g => 
-                                                            (g[1] === grampanchayatName && g[0] === lgdCode) || 
-                                                            g[0] === lgdCode
+                                                            (g.name === grampanchayatName && g.id === lgdCode) || 
+                                                            g.id === lgdCode
                                                         );
                                                         
                                                         if (gp) {
                                                             setTimeout(function() {
-                                                                $('#grampanchayat').val(gp[0]);
-                                                                $('#lgdCodeDisplay').text(gp[0]);
+                                                                $('#grampanchayat').val(gp.id);
+                                                                $('#lgdCodeDisplay').text(gp.id);
                                                             }, 100);
                                                         }
                                                     });
