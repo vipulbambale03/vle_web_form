@@ -277,6 +277,7 @@ def search_record():
         connection = get_db_connection()
         cursor = connection.cursor()
         
+        # First try exact matches
         cursor.execute("""
             SELECT v.*, 
                    TO_CHAR(v.dob, 'YYYY-MM-DD') as dob_formatted,
@@ -293,59 +294,64 @@ def search_record():
         if not record:
             return jsonify({'success': False, 'message': 'Record not found'})
         
+        # Get column names
         colnames = [desc[0] for desc in cursor.description]
         record_dict = dict(zip(colnames, record))
         
-        # Enhanced grampanchayat verification
-        lgd_codes = []
-        if record_dict['lgd_code']:
-            lgd_codes = [code.strip() for code in record_dict['lgd_code'].split(',') if code.strip()]
-        
-        grampanchayat_details = []
+        # Get location information
         location_ids = {}
+        grampanchayat_details = []
+        lgd_codes = record_dict['lgd_code'].split(', ') if record_dict['lgd_code'] else []
         
         if lgd_codes:
-            cursor.execute("""
-                SELECT g.lgd_code, g.name, g.block_id, 
-                       b.district_id, d.division_id as division_id
-                FROM grampanchayats g
-                JOIN blocks b ON g.block_id = b.id
-                JOIN districts d ON b.district_id = d.id
-                WHERE g.lgd_code = ANY(%s)
-                ORDER BY g.name
-            """, (lgd_codes,))
-            grampanchayat_details = cursor.fetchall()
+            if record_dict['vle_type'] == 'individual' and len(lgd_codes) == 1:
+                # For individual, get single GP location
+                cursor.execute("""
+                    SELECT g.lgd_code, g.block_id, b.district_id, d.division_id as division_id
+                    FROM grampanchayats g
+                    JOIN blocks b ON g.block_id = b.id
+                    JOIN districts d ON b.district_id = d.id
+                    WHERE g.lgd_code = %s
+                """, (lgd_codes[0],))
+                gp_location = cursor.fetchone()
+                
+                if gp_location:
+                    location_ids = {
+                        'division_id': gp_location[3],
+                        'district_id': gp_location[2],
+                        'block_id': gp_location[1],
+                        'grampanchayat_id': lgd_codes[0]
+                    }
             
-            if grampanchayat_details:
-                # Verify all GPs exist
-                found_codes = {gp[0] for gp in grampanchayat_details}
-                missing_codes = set(lgd_codes) - found_codes
+            elif record_dict['vle_type'] == 'cluster' and len(lgd_codes) > 1:
+                # For cluster, get all GP details
+                cursor.execute("""
+                    SELECT g.lgd_code, g.name, g.block_id, 
+                           b.district_id, d.division_id as division_id
+                    FROM grampanchayats g
+                    JOIN blocks b ON g.block_id = b.id
+                    JOIN districts d ON b.district_id = d.id
+                    WHERE g.lgd_code = ANY(%s)
+                """, (lgd_codes,))
+                grampanchayat_details = cursor.fetchall()
                 
-                if missing_codes:
-                    print(f"Warning: Missing grampanchayats: {missing_codes}")
-                
-                # Get location hierarchy from first GP
-                gp = grampanchayat_details[0]
-                location_ids = {
-                    'division_id': gp[4],
-                    'district_id': gp[3],
-                    'block_id': gp[2]
-                }
-                
-                if record_dict['vle_type'] == 'individual':
-                    location_ids['grampanchayat_id'] = gp[0]
-                else:
-                    location_ids['grampanchayat_ids'] = [gp[0] for gp in grampanchayat_details]
+                if grampanchayat_details:
+                    # Verify all GPs are from same block
+                    block_ids = set(gp[2] for gp in grampanchayat_details)
+                    if len(block_ids) == 1:
+                        gp = grampanchayat_details[0]
+                        location_ids = {
+                            'division_id': gp[4],
+                            'district_id': gp[3],
+                            'block_id': gp[2],
+                            'grampanchayat_ids': [gp[0] for gp in grampanchayat_details]
+                        }
 
         response = {
             'success': True, 
             'record': record_dict,
             'location_ids': location_ids,
-            'grampanchayat_details': grampanchayat_details,
-            'debug': {
-                'lgd_codes_received': lgd_codes,
-                'lgd_codes_found': [gp[0] for gp in grampanchayat_details]
-            }
+            'grampanchayat_details': grampanchayat_details
         }
         
         return jsonify(response)
@@ -355,7 +361,7 @@ def search_record():
     finally:
         if 'cursor' in locals(): cursor.close()
         if 'connection' in locals(): connection.close()
-            
+
 @app.route('/update_record', methods=['POST'])
 def update_record():
     try:
